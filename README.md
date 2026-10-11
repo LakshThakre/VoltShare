@@ -10,14 +10,10 @@ A mobile-first clean-tech decentralized marketplace empowering rooftop solar pro
 
 - [Overview & Problem Statement](#overview--problem-statement)
 - [Key Features](#key-features)
-- [System Architecture](#system-architecture)
 - [Tech Stack](#tech-stack)
 - [Database Schema & Stored Procedures](#database-schema--stored-procedures)
 - [Project Directory Structure](#project-directory-structure)
 - [Getting Started & Local Setup](#getting-started--local-setup)
-- [Pre-Seeded Indian Prosumer Accounts](#pre-seeded-indian-prosumer-accounts)
-- [Roadmap](#roadmap)
-- [License](#license)
 
 ---
 
@@ -56,35 +52,6 @@ VoltShare establishes a decentralized, neighborhood-level peer-to-peer (P2P) ene
 - **Dual Balance Display**: Displays both liquid fiat currency (**₹ INR**) and stored electricity (**kWh**).
 - **Virtual Top-Up & UPI Payout**: Instant wallet funding and simulated UPI withdrawal requests.
 - **Unified Transaction Ledger**: Color-coded transaction audit log (Green credit for solar energy sold, Orange debit for power purchased, Blue for wallet top-ups).
-
----
-
-## System Architecture
-
-```mermaid
-flowchart TD
-    subgraph Mobile_App ["Mobile Application (React Native / Expo)"]
-        UI["Screens: Home | Marketplace | Wallet | Analytics"]
-        Context["MarketContext & AuthContext"]
-        SupabaseClient["@supabase/supabase-js Client"]
-        UI --> Context
-        Context --> SupabaseClient
-    end
-
-    subgraph Supabase_Backend ["Supabase / PostgreSQL Engine"]
-        Auth["Supabase Auth (Google OAuth & Guests)"]
-        Tables["Tables: profiles | wallets | energy_listings | transactions | wallet_transactions"]
-        RPC["SECURITY DEFINER Stored Procedures: buy_energy() | add_money() | withdraw_money()"]
-        Trigger["Trigger: handle_new_user() on auth.users"]
-        
-        SupabaseClient --> Auth
-        SupabaseClient --> Tables
-        SupabaseClient --> RPC
-        Auth --> Trigger
-        Trigger --> Tables
-        RPC --> Tables
-    end
-```
 
 ---
 
@@ -270,37 +237,6 @@ npm run ios       # Run on iOS simulator (macOS required)
 npm run web       # Run in web browser
 ```
 Scan the QR code shown in your terminal using **Expo Go** to launch VoltShare on your mobile device!
-
----
-
-## Pre-Seeded Indian Prosumer Accounts
-
-The seed script creates 5 prosumers operating on the Bengaluru urban microgrid:
-
-| Prosumer Name | Locality | Surplus Listed | Rate (₹/kWh) | Grid Comparison |
-| :--- | :--- | :--- | :--- | :--- |
-| **Aarav Nair** | Indiranagar 100ft Rd | `28.0 kWh` | ₹ 5.40 | Save ₹ 2.60 / kWh vs Grid |
-| **Pooja Sharma** | Koramangala 4th Block | `20.0 kWh` | ₹ 5.20 | Save ₹ 2.80 / kWh vs Grid |
-| **Rohan Kulkarni** | HSR Layout Sector 2 | `35.0 kWh` | ₹ 5.50 | Save ₹ 2.50 / kWh vs Grid |
-| **Ananya Iyer** | Jayanagar 4th Block | `18.0 kWh` | ₹ 5.10 | Save ₹ 2.90 / kWh vs Grid |
-| **Vikramaditya Sengupta** | Whitefield EPIP Zone | `45.0 kWh` | ₹ 5.30 | Save ₹ 2.70 / kWh vs Grid |
-
----
-
-## Roadmap
-
-- [x] **Core P2P Marketplace**: Listing creation, radius filtering, and real-time order matching.
-- [x] **Atomic Settlements**: Stored procedure execution preventing double-spending and inventory discrepancies.
-- [x] **Dual Balance Wallet**: Simultaneous tracking of INR fiat money and kWh clean power units.
-- [ ] **Physical Hardware Integration**: MQTT broker connection to physical ESP32/Raspberry Pi smart meters.
-- [ ] **Dynamic Spot Pricing**: AI algorithm adjusting tariffs automatically based on live cloud cover and solar irradiance.
-- [ ] **On-Chain Carbon Credits**: Minting verified carbon offsets (VCM) for each clean kWh generated and traded.
-
----
-
-## License
-
-Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for full details.
 
 ---
 
