@@ -1,0 +1,73 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# Dependencies
+node_modules/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.log*
+
+# Environment Variables & Secrets (Keep .env.example tracked)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+!.env.example
+
+# Expo & Metro
+.expo/
+.expo-shared/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+metro-cache/
+
+# Native Builds (Expo prebuild / native folders)
+/ios/
+/android/
+.kotlin/
+*.orig.*
+
+# Security, Signing Keys & Certificates
+*.jks
+*.p8
+*.p12
+*.key
+*.keystore
+*.mobileprovision
+*.pem
+*.cer
+*.crt
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+
+# Logs & Temporary Files
+*.log
+*.tmp
+*.bak
+*~
+*.swp
+*.swo
+
+# OS Specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs & Code Editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
