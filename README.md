@@ -71,19 +71,18 @@ VoltShare establishes a decentralized, neighborhood-level peer-to-peer (P2P) ene
 ### Backend, Database & Cloud
 | Technology | Description |
 | :--- | :--- |
-| **Supabase** | Open-source Firebase alternative providing managed PostgreSQL and Auth |
-| **PostgreSQL 15+** | Relational database handling users, wallets, and trades |
-| **PL/pgSQL Functions** | `SECURITY DEFINER` atomic stored procedures preventing race conditions |
-| **Row Level Security (RLS)** | Secure table access policies for production deployments |
-| **Google OAuth 2.0** | Secure one-tap login paired with automated profile provisioning |
+| **PostgreSQL 15** | Local Docker container with persistent named volume, bound to `127.0.0.1:5432` |
+| **Node.js & Express** | Lightweight TypeScript backend API server running raw SQL via `pg` (no ORM) |
+| **Argon2id & Sessions** | Password hashing via Argon2id, cryptographically secure 32-byte tokens, SHA-256 session storage |
+| **PL/pgSQL Functions** | Atomic stored procedures (`buy_energy`, `add_money`, `withdraw_money`) preventing race conditions |
 
 ---
 
 ## Database Schema & Stored Procedures
 
-The database logic is organized inside the [`sql/`](./sql) directory:
-- [`sql/schema.sql`](./sql/schema.sql): Complete DDL, tables, triggers, and functions.
-- [`sql/seed_indian_data.sql`](./sql/seed_indian_data.sql): Seed script for 5 verified Indian prosumers in Bengaluru.
+The database logic is organized inside the [`sql/schema/`](./sql/schema) directory:
+- [`sql/schema/001_auth_tables.sql`](./sql/schema/001_auth_tables.sql): Custom `users` and `sessions` schema.
+- [`sql/schema/002_app_schema.sql`](./sql/schema/002_app_schema.sql): Complete DDL, tables, and atomic stored procedures (`buy_energy`, `add_money`, `withdraw_money`).
 
 ### Core Relational Tables
 1. **`profiles`**: Stores user identity, Google OAuth metadata, smart meter ID, and grid tariff rates.
@@ -162,35 +161,42 @@ $$;
 ## Project Directory Structure
 
 ```text
-energyApp/
-├── assets/                           # App branding & assets
-│   ├── icon.png                      # App launcher icon
-│   ├── splash-icon.png               # Launch splash screen asset
-│   └── voltshare-logo.png            # App branding logo
-├── sql/                              # Database DDL & Seed Scripts
-│   ├── schema.sql                    # Complete PostgreSQL schema & stored procedures
-│   └── seed_indian_data.sql          # Seed data with 5 verified Indian prosumers
-├── src/
-│   ├── components/                   # Reusable UI components
-│   │   ├── BuyModal.tsx              # Order confirmation bottom sheet
-│   │   └── ListEnergyModal.tsx       # Sell rooftop solar energy modal
-│   ├── context/                      # React context providers
-│   │   ├── AuthContext.tsx           # Google OAuth & session management
-│   │   └── MarketContext.tsx         # Real-time marketplace state & Supabase RPC
-│   ├── screens/                      # Application screens
-│   │   ├── HomeScreen.tsx            # Main dashboard with generation curve
-│   │   ├── MarketplaceScreen.tsx     # P2P listings, search, and filters
-│   │   ├── WalletScreen.tsx          # Dual-asset wallet & transaction ledger
-│   │   ├── AnalyticsScreen.tsx       # Energy consumption & savings statistics
-│   │   ├── ProfileScreen.tsx         # User profile & smart meter pairing
-│   │   └── LoginScreen.tsx           # Google login & guest bypass authentication
-│   ├── theme/                        # Colors, typography, and theme provider
-│   └── types/                        # TypeScript definitions & data models
+VoltShare/
+├── docker-compose.yml                # PostgreSQL 15 container definition
 ├── .env.example                      # Environment variables template
-├── App.tsx                           # App entry point & navigation hierarchy
-├── app.json                          # Expo project configuration
-├── package.json                      # Project dependencies & scripts
-└── tsconfig.json                     # TypeScript compiler configuration
+├── .env                              # Gitignored local secrets
+├── sql/                              # Database SQL Schema
+│   └── schema/                       # Plain numbered SQL schema scripts
+│       ├── 001_auth_tables.sql       # Custom users & sessions tables
+│       └── 002_app_schema.sql        # VoltShare schema & stored procedures
+├── backend/                          # Node.js Express API Server (Raw SQL via pg)
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── src/
+│   │   ├── app.ts                    # Express application & middleware
+│   │   ├── index.ts                  # Server entrypoint (Port 4000)
+│   │   ├── db.ts                     # PostgreSQL connection pool
+│   │   ├── db-init.ts                # Database initialization script
+│   │   ├── middleware/               # Auth, rate-limiting & CSRF middleware
+│   │   └── routes/                   # Auth, marketplace, wallet, profile routes
+│   └── tests/                        # Integration test suite (Argon2id, sessions, routes)
+│       └── auth.test.ts
+├── frontend/                         # React Native / Expo Mobile & Web App
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── app.json
+│   ├── App.tsx                       # Navigation hierarchy
+│   ├── index.ts                      # Expo root entrypoint
+│   ├── assets/                       # App icons & branding
+│   └── src/
+│       ├── components/               # Modals, charts, cards, list items
+│       ├── context/                  # AuthContext & MarketContext
+│       ├── navigation/               # RootNavigator & TabNavigator
+│       ├── screens/                  # LoginScreen, HomeScreen, Marketplace, Wallet, etc.
+│       ├── services/                 # api.ts (Backend HTTP client)
+│       ├── theme/                    # Color tokens & theme provider
+│       └── types/                    # Shared data models & filter state
+└── package.json                      # Root convenience scripts
 ```
 
 ---
@@ -204,42 +210,116 @@ energyApp/
 
 ### 2. Clone and Install Dependencies
 ```bash
-git clone https://github.com/your-username/energyApp.git
-cd energyApp
+git clone https://github.com/your-username/VoltShare.git
+cd VoltShare
 npm install
 ```
 
-### 3. Configure Supabase Environment Variables
-Copy the `.env.example` file to create your local `.env`:
+### 1. Prerequisites
+- **Node.js**: `v18.0.0` or higher
+- **Docker & Docker Compose**: Installed and enabled on your system
+- **Expo Go** app on physical mobile device or web browser
+
+### 2. Configure Environment Variables
+Copy `.env.example` to create your local `.env`:
 ```bash
 cp .env.example .env
 ```
-Populate your Supabase Project credentials:
+Ensure your database password is set in `.env` (already generated securely during setup):
 ```env
-EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key-here
+POSTGRES_USER=voltshare
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_DB=voltshare
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql://voltshare:your_secure_password@127.0.0.1:5432/voltshare
+PORT=4000
+EXPO_PUBLIC_API_URL=http://localhost:4000
 ```
 
-### 4. Initialize Database & Seed Prosumers
-1. Open your **[Supabase Dashboard](https://supabase.com/dashboard)**.
-2. Navigate to **SQL Editor** -> **New Query**.
-3. Paste and run the contents of [`sql/schema.sql`](./sql/schema.sql).
-4. Run the contents of [`sql/seed_indian_data.sql`](./sql/seed_indian_data.sql) to populate live marketplace listings.
-
-### 5. Launch the Application
+### 3. Start the Local PostgreSQL Database in Docker
 ```bash
-# Start Expo development server
-npx expo start
+# Start Postgres in background (bound strictly to 127.0.0.1:5432)
+docker compose up -d
 
-# Or directly target a platform:
-npm run android   # Run on connected Android device/emulator
-npm run ios       # Run on iOS simulator (macOS required)
-npm run web       # Run in web browser
+# Check health status
+docker compose ps
 ```
-Scan the QR code shown in your terminal using **Expo Go** to launch VoltShare on your mobile device!
+
+### 4. Initialize Database Schema
+Initialize the database tables and stored procedures (`001_auth_tables.sql`, `002_app_schema.sql`):
+```bash
+npm run db:init
+# or: npm run db:setup
+```
+
+### 5. Inspecting the Database
+**Using CLI (`psql`):**
+```bash
+# Open interactive SQL terminal inside the container
+docker compose exec db psql -U voltshare -d voltshare
+
+# Inside psql, list all tables:
+\dt
+
+# Query users or active marketplace listings:
+SELECT email, created_at FROM public.users;
+SELECT price_per_kwh, available_kwh, location_label FROM public.energy_listings;
+
+# Exit psql:
+\q
+```
+
+**Using Graphical GUI (DBeaver on Arch Linux):**
+```bash
+sudo pacman -S dbeaver
+```
+Connection parameters in DBeaver:
+- **Host**: `127.0.0.1` (or `localhost`)
+- **Port**: `5432`
+- **Database**: `voltshare`
+- **Username**: `voltshare`
+- **Password**: *(The password configured in your `.env`)*
 
 ---
 
-<div align="center">
-  <sub>Built for a decentralized, clean-energy future. Powered by React Native & Supabase.</sub>
-</div>
+### 6. Database Operations & Maintenance
+- **Stop Database**:
+  ```bash
+  docker compose stop
+  ```
+  *Pauses the Postgres container without deleting any data.*
+
+- **Start Database**:
+  ```bash
+  docker compose start
+  ```
+  *Resumes the existing container with all existing data intact.*
+
+- **Wipe and Start Fresh (Rebuild from Scratch)**:
+  ```bash
+  docker compose down -v
+  docker compose up -d
+  npm run db:init
+  ```
+  > [!WARNING]
+  > `docker compose down -v` permanently removes the named Docker volume (`voltshare_postgres_data`) and deletes all records. Use only when you want a clean slate.
+
+- **System Reboots**:
+  Because Docker is enabled via `systemd` and the container has `restart: unless-stopped`, the Postgres database automatically boots up on system startup. You can verify this anytime by running:
+  ```bash
+  docker ps
+  ```
+
+---
+
+### 7. Launch the Application
+```bash
+# 1. Start backend server (Port 4000)
+npm run dev:backend
+
+# 2. In another terminal, start Expo React Native app (Default LAN Mode)
+npm run dev:frontend
+
+# (Optional: if your phone is on cellular data or different network, use Tunnel mode)
+# npm run dev:frontend:tunnel
+```

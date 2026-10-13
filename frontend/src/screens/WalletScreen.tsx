@@ -136,9 +136,9 @@ export const WalletScreen: React.FC = () => {
         renderItem={({ item }) => {
           const isCredit = item.type === 'Sell' || item.type === 'Deposit';
           const title =
-            item.type === 'Sell'
+            item.type === 'Sell' && !item.sellerOrBuyerName.toLowerCase().startsWith('sold')
               ? `Sold ${item.kwhAmount} kWh to ${item.sellerOrBuyerName}`
-              : item.type === 'Buy'
+              : item.type === 'Buy' && !item.sellerOrBuyerName.toLowerCase().startsWith('purchased')
               ? `Purchased ${item.kwhAmount} kWh from ${item.sellerOrBuyerName}`
               : item.sellerOrBuyerName;
 

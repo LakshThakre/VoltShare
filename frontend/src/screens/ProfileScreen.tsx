@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { UserRole } from '../types';
@@ -16,16 +17,41 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   const { colors } = useTheme();
   const { user, setRole, logout } = useAuth();
 
+  const performLogout = async () => {
+    try {
+      await logout();
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      } else {
+        navigation.navigate('Login' as never);
+      }
+    } catch (e) {
+      console.warn('Logout navigation warning:', e);
+    }
+  };
+
   const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      const confirmed =
+        typeof window !== 'undefined'
+          ? window.confirm('Are you sure you want to log out of VoltShare?')
+          : true;
+      if (confirmed) {
+        performLogout();
+      }
+      return;
+    }
+
     Alert.alert('Log Out', 'Are you sure you want to log out of VoltShare?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Log Out',
         style: 'destructive',
-        onPress: async () => {
-          await logout();
-          navigation.replace('Login');
-        },
+        onPress: performLogout,
       },
     ]);
   };

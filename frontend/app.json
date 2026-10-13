@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "energyApp",
-    "slug": "energyApp",
+    "name": "VoltShare",
+    "slug": "voltshare",
     "scheme": "voltshare",
     "version": "1.0.0",
     "orientation": "portrait",

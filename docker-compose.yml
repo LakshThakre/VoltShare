@@ -1,0 +1,22 @@
+services:
+  db:
+    container_name: voltshare_db
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-voltshare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-KhUL07hwyoM2eQwmXf5J03obP7gPEe3x}
+      POSTGRES_DB: ${POSTGRES_DB:-voltshare}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-voltshare} -d ${POSTGRES_DB:-voltshare}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: voltshare_postgres_data

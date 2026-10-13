@@ -1,37 +1,62 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# ==============================================================================
+# VoltShare .gitignore
+# Covers Monorepo Root, Frontend (React Native / Expo), and Backend (Node / Express)
+# ==============================================================================
 
-# Dependencies
+# 1. Dependencies
 node_modules/
+*/node_modules/
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 pnpm-debug.log*
+lerna-debug.log*
 
-# Environment Variables & Secrets (Keep .env.example tracked)
+# 2. Environment Variables & Secrets (Keep .env.example tracked)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env*.local
+.env.*
 !.env.example
+*/.env
+*/.env.*
+!*/.env.example
 
-# Expo & Metro
+# 3. Expo & Metro Bundler
 .expo/
+*/.expo/
 .expo-shared/
-dist/
+*/.expo-shared/
 web-build/
+*/web-build/
 expo-env.d.ts
+*/expo-env.d.ts
 .metro-health-check*
 metro-cache/
+*/metro-cache/
 
-# Native Builds (Expo prebuild / native folders)
-/ios/
+# 4. Build Artifacts & Distribution Outputs
+dist/
+*/dist/
+build/
+*/build/
+out/
+*/out/
+
+# 5. Native Mobile Builds (Expo Prebuild / Android & iOS)
 /android/
+/ios/
+frontend/android/
+frontend/ios/
 .kotlin/
 *.orig.*
 
-# Security, Signing Keys & Certificates
+# 6. Database Storage & Docker Volumes
+postgres_data/
+pgdata/
+*.sqlite
+*.sqlite3
+*.db
+
+# 7. Security, Keystores & Signing Certificates
 *.jks
 *.p8
 *.p12
@@ -42,22 +67,26 @@ metro-cache/
 *.cer
 *.crt
 
-# TypeScript
+# 8. TypeScript & Cache
 *.tsbuildinfo
+.cache/
+*/.cache/
 
-# Testing & Coverage
+# 9. Testing & Code Coverage
 coverage/
+*/coverage/
 .nyc_output/
 
-# Logs & Temporary Files
+# 10. Logs & Temporary Files
 *.log
+*.log.*
 *.tmp
 *.bak
 *~
 *.swp
 *.swo
 
-# OS Specific
+# 11. Operating System Files
 .DS_Store
 .DS_Store?
 ._*
@@ -65,9 +94,16 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+.directory
 
-# IDEs & Code Editors
+# 12. IDEs & Code Editors
 .idea/
 .vscode/
 *.sublime-project
 *.sublime-workspace
+
+# 13. Local Developer Quickstart Guides
+Quide.md
+quide.md
+Guide.md
+guide.md
