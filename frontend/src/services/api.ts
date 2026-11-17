@@ -14,12 +14,15 @@ function getApiBaseUrl(): string {
     }
     return 'http://localhost:4000';
   }
-  // When running on physical device via Expo Go, hostUri contains the computer IP (e.g. 172.16.169.105)
+  // When running on physical device via Expo Go, hostUri contains the computer IP
   const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest?.debuggerHost;
   if (hostUri) {
     const host = hostUri.split(':')[0];
     if (host.includes('ngrok') || host.includes('exp.direct')) {
-      return 'http://172.16.169.105:4000';
+      console.warn(
+        '[VoltShare API] Running via Expo tunnel. If the backend fails to connect across networks, set EXPO_PUBLIC_API_URL in frontend/.env to your backend tunnel URL.'
+      );
+      return 'http://localhost:4000';
     }
     return `http://${host}:4000`;
   }
