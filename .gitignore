@@ -107,3 +107,16 @@ Quide.md
 quide.md
 Guide.md
 guide.md
+
+# 14. Project Reports & Academic Documentation
+Project_Report_Format*.doc
+VoltShare_Project_Report*.docx
+*.doc
+*.docx
+
+# 15. Diagrams & Design Mockups
+diagrams/
+*.drawio
+*.drawio.bkp
+*.drawio.dtmp
+Figure*.png
