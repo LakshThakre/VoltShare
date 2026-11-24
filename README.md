@@ -168,7 +168,8 @@ VoltShare/
 ├── sql/                              # Database SQL Schema
 │   └── schema/                       # Plain numbered SQL schema scripts
 │       ├── 001_auth_tables.sql       # Custom users & sessions tables
-│       └── 002_app_schema.sql        # VoltShare schema & stored procedures
+│       ├── 002_app_schema.sql        # VoltShare schema & stored procedures
+│       └── 003_seed_showcase_data.sql # Pre-seeded demo prosumers & listings
 ├── backend/                          # Node.js Express API Server (Raw SQL via pg)
 │   ├── package.json
 │   ├── tsconfig.json
@@ -185,6 +186,7 @@ VoltShare/
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── app.json
+│   ├── metro.config.js               # Metro bundler config & API reverse proxy
 │   ├── App.tsx                       # Navigation hierarchy
 │   ├── index.ts                      # Expo root entrypoint
 │   ├── assets/                       # App icons & branding
@@ -245,12 +247,19 @@ docker compose up -d
 docker compose ps
 ```
 
-### 4. Initialize Database Schema
-Initialize the database tables and stored procedures (`001_auth_tables.sql`, `002_app_schema.sql`):
+### 4. Initialize Database Schema & Showcase Data
+Initialize the database tables, stored procedures, and pre-seeded demo prosumers:
 ```bash
 npm run db:init
 # or: npm run db:setup
 ```
+
+*(This applies `001_auth_tables.sql`, `002_app_schema.sql`, and `003_seed_showcase_data.sql`)*.
+
+#### Showcase Demo Credentials
+* **Email**: `demo@voltshare.com`
+* **Password**: `DemoPass123!`
+* Pre-configured with **₹1,250.00** wallet balance, **38.5 kWh** energy balance, active smart meter (`#MTR-DEMO-01`), and 5 verified neighborhood solar seller listings.
 
 ### 5. Inspecting the Database
 **Using CLI (`psql`):**
@@ -317,9 +326,13 @@ Connection parameters in DBeaver:
 # 1. Start backend server (Port 4000)
 npm run dev:backend
 
-# 2. In another terminal, start Expo React Native app (Default LAN Mode)
+# 2. In another terminal, start Expo React Native app
+# Option A: Mobile Phone via Tunnel (Recommended for Expo Go on any network)
+npm run tunnel
+
+# Option B: Mobile Phone via Local Wi-Fi (Same open Wi-Fi network)
 npm run dev:frontend
 
-# (Optional: if your phone is on cellular data or different network, use Tunnel mode)
-# npm run dev:frontend:tunnel
+# Option C: Web Browser
+npm run web
 ```

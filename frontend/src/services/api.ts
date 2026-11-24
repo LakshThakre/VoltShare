@@ -4,31 +4,60 @@ import Constants from 'expo-constants';
 
 const STORAGE_TOKEN_KEY = 'voltshare_session_token';
 
-function getApiBaseUrl(): string {
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
-  }
+export function getApiBaseUrl(): string {
+  // 1. Web environment
   if (Platform.OS === 'web') {
+    if (process.env.EXPO_PUBLIC_API_URL) {
+      return process.env.EXPO_PUBLIC_API_URL;
+    }
     if (typeof window !== 'undefined' && window.location?.hostname) {
       return `http://${window.location.hostname}:4000`;
     }
     return 'http://localhost:4000';
   }
-  // When running on physical device via Expo Go, hostUri contains the computer IP
-  const hostUri = Constants.expoConfig?.hostUri || (Constants as any).manifest?.debuggerHost;
-  if (hostUri) {
-    const host = hostUri.split(':')[0];
-    if (host.includes('ngrok') || host.includes('exp.direct')) {
-      console.warn(
-        '[VoltShare API] Running via Expo tunnel. If the backend fails to connect across networks, set EXPO_PUBLIC_API_URL in frontend/.env to your backend tunnel URL.'
-      );
-      return 'http://localhost:4000';
+
+  // 2. Resolve Expo host from runtime metadata
+  const hostUri =
+    Constants.expoConfig?.hostUri ||
+    (Constants as any).manifest?.debuggerHost ||
+    (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
+
+  const rawHost = hostUri ? hostUri.split(':')[0] : null;
+  const isTunnel = !!(rawHost && (rawHost.includes('exp.direct') || rawHost.includes('ngrok')));
+
+  // 3. Check for explicit EXPO_PUBLIC_API_URL override
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    const envUrl = process.env.EXPO_PUBLIC_API_URL.trim();
+    const isLocalEnv =
+      envUrl.includes('localhost') ||
+      envUrl.includes('127.0.0.1') ||
+      /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(envUrl);
+
+    // If running over Expo tunnel, local LAN IPs / localhost won't be reachable from the phone.
+    // In that case, use the Expo tunnel Metro proxy.
+    if (isTunnel && isLocalEnv && rawHost) {
+      return `https://${rawHost}`;
     }
-    return `http://${host}:4000`;
+
+    return envUrl;
   }
+
+  // 4. When running via Expo tunnel (npx expo start --tunnel), route API through Metro proxy
+  if (isTunnel && rawHost) {
+    return `https://${rawHost}`;
+  }
+
+  // 5. When running on physical device via Expo Go on local Wi-Fi
+  if (rawHost) {
+    return `http://${rawHost}:4000`;
+  }
+
+  // 6. Android emulator default
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:4000';
   }
+
+  // 7. iOS simulator / local fallback
   return 'http://localhost:4000';
 }
 
@@ -72,7 +101,8 @@ async function request<T = any>(
       headers['Cookie'] = `vs_session=${token}`;
     }
 
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const baseUrl = getApiBaseUrl();
+    const res = await fetch(`${baseUrl}${path}`, {
       ...options,
       headers,
       signal: controller.signal,
@@ -92,11 +122,12 @@ async function request<T = any>(
     return { data: json };
   } catch (err: any) {
     clearTimeout(timeoutId);
+    const baseUrl = getApiBaseUrl();
     if (err.name === 'AbortError') {
-      return { error: `Connection timed out. Could not reach backend server at ${API_BASE_URL}.` };
+      return { error: `Connection timed out. Could not reach backend server at ${baseUrl}.` };
     }
     return {
-      error: `Cannot connect to backend server at ${API_BASE_URL}. Please ensure 'npm run dev:backend' is running!`,
+      error: `Cannot connect to backend server at ${baseUrl}. Please ensure 'npm run dev:backend' is running!`,
     };
   }
 }

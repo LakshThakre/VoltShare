@@ -4,17 +4,15 @@
   "private": true,
   "description": "VoltShare - Peer-to-Peer Rooftop Energy Trading Platform",
   "scripts": {
+    "start": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
-    "dev:frontend:tunnel": "npm run tunnel --prefix frontend",
     "tunnel": "npm run tunnel --prefix frontend",
-    "dev:tunnel": "npm run tunnel --prefix frontend",
-    "start": "npm run dev --prefix frontend",
-    "db:init": "npm run db:init --prefix backend",
-    "db:setup": "npm run db:setup --prefix backend",
-    "test": "npm test --prefix backend",
+    "web": "npm run web --prefix frontend",
     "android": "npm run android --prefix frontend",
     "ios": "npm run ios --prefix frontend",
-    "web": "npm run web --prefix frontend"
+    "db:init": "npm run db:init --prefix backend",
+    "db:setup": "npm run db:setup --prefix backend",
+    "test": "npm test --prefix backend"
   }
 }

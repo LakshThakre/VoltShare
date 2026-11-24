@@ -34,6 +34,8 @@ export function csrfOriginCheck(req: Request, res: Response, next: NextFunction)
       host.endsWith('.ngrok.io') ||
       host.endsWith('.ngrok-free.app') ||
       host.endsWith('.ngrok.app') ||
+      host.endsWith('.loca.lt') ||
+      host.endsWith('.trycloudflare.com') ||
       url.protocol === 'exp:' ||
       url.protocol === 'voltshare:';
 
